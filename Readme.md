@@ -38,6 +38,37 @@ Two monitors will be used:
 One at the microwave that will send a 1 when the microwave is on, a 0 when it is off.  I call the software I wrote [PlugE](https://github.com/BitKnitting/FitHome/wiki/PlugE) to reflect the code "goo" needed to get readings from the HS110 and figure out if the microwave is on or off.
 ## Send Readings  
 The two monitors independently send readings.  These are put in the mongodb database running on the Rasp Pi.  Both are within the FitHome DB.  The aggregate data is in the aggregate collection.  The microwave data is in the microwave collection.
+## Collect Readings
+I run two Systemd services on the Rasp Pi:
+- `PlugE_microwave.service`  This is an evolution of [the PlugE service discussed here](https://github.com/BitKnitting/FitHome/wiki/PlugE#systemd-service).
+```
+[Unit]
+Description=Collect microwave readings into mongodb.
+# Don't start the service until the network is up and running
+After=network.target
+
+[Service]
+Type=simple
+# ExecStart=/usr/bin/python3 /home/pi/projects/FitHome_PlugE/PlugE/plug_microwave.py
+ExecStart = /home/pi/projects/FitHome_PlugE/PlugE/plug_microwave.py
+Restart=on-failure
+User=pi
+
+[Install]
+# Components of this application should be started at boot time
+WantedBy=multi-user.target
+```
+__NOTE: Make sure to include the shebang command at the beginning of the .py script__:  
+```
+#!/home/pi/projects/FitHome_PlugE/PlugE/venv/bin/python3
+from pyHS100 import SmartPlug, Discover
+from plug_lib import Plug, MongoDB
+
+db = MongoDB("mongodb://localhost:27017/", "FitHome", "microwave")
+plug = Plug("microwave", db, detect_on=False)
+plug.start()
+```
+
 # Data Pipeline
 ## MongoDB to Zip files
 The first step in the data pipeline is to get the aggregate and microwave readings out of mongodb and into two Pandas dataframes that are then compressed into Zip file.  
