@@ -58,30 +58,33 @@ class SendReading:
         print('response: {}'.format(response.text))
         return True
 
-    def _set_time(self):
-        # Get the time from Firebase.
-        path = 'https://fithome-9ebbd.firebaseio.com/current_timestamp/.json'
-        data = '{ "timestamp":{".sv": "timestamp"} }'
-        r = requests.put(path, data=data)
-        timestamp_fb = r.json()['timestamp']
-        # Convert the timestamp to micropython 2000-01-01 (embedded) Epoch
-        # format and extract year, month....
-        ts = timestamp_fb // 1000
-        time_diff = 946684800
-        year, month, day, hour, minute,  second, dayofweek, dayofyear = utime.localtime(
-            ts-time_diff)
-        print('{} {} {}'.format(year, month, day))
-        # Set micropython's date/time
-        rtc = machine.RTC()
-        rtc.datetime((year, month, day, dayofweek, hour, minute, second, 0))
-    # Used when writing to firebase RT.
+    # The functions below were used when readings were sent to a Firebase db.
+    # This code posts the reading to the url in the config file.    
 
-    def _make_path(self):
-        # Get the time and convert to Unix epoch.
-        now = utime.time()
-        time_diff = 946684800
-        now_unix = now + time_diff
-        # String ize
-        now_unix_str = str(now_unix)
-        return 'https://' + self.project_id+'.firebaseio.com/' + \
-            self.monitor_name+'/readings/'+now_unix_str+'/.json'
+    # def _set_time(self):
+    #     # Get the time from Firebase.
+    #     path = 'https://fithome-9ebbd.firebaseio.com/current_timestamp/.json'
+    #     data = '{ "timestamp":{".sv": "timestamp"} }'
+    #     r = requests.put(path, data=data)
+    #     timestamp_fb = r.json()['timestamp']
+    #     # Convert the timestamp to micropython 2000-01-01 (embedded) Epoch
+    #     # format and extract year, month....
+    #     ts = timestamp_fb // 1000
+    #     time_diff = 946684800
+    #     year, month, day, hour, minute,  second, dayofweek, dayofyear = utime.localtime(
+    #         ts-time_diff)
+    #     print('{} {} {}'.format(year, month, day))
+    #     # Set micropython's date/time
+    #     rtc = machine.RTC()
+    #     rtc.datetime((year, month, day, dayofweek, hour, minute, second, 0))
+    # # Used when writing to firebase RT.
+
+    # def _make_path(self):
+    #     # Get the time and convert to Unix epoch.
+    #     now = utime.time()
+    #     time_diff = 946684800
+    #     now_unix = now + time_diff
+    #     # String ize
+    #     now_unix_str = str(now_unix)
+    #     return 'https://' + self.project_id+'.firebaseio.com/' + \
+    #         self.monitor_name+'/readings/'+now_unix_str+'/.json'
